@@ -25,6 +25,23 @@
                     minZoom: 3,
                     streetViewControl: false
                 })
+                db.collection('users').get().then(users => {
+                    users.docs.forEach(doc => {
+                        let data = doc.data()
+                        if(data.geolocation){
+                            let marker = new google.maps.Marker({
+                                position: {
+                                    lat: data.geolocation.lat,
+                                    lng: data.geolocation.lng
+                                },
+                                map
+                            })
+                            marker.addListener('click', ()=>{
+                                this.$router.push({name: 'ViewProfile', params: { id: doc.id }})
+                            })
+                        }
+                    })
+                })
             }
         },
         mounted() {
@@ -33,7 +50,7 @@
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(pos => {
                     this.lat = pos.coords.latitude
-                    this.log = pos.coords.longitude
+                    this.lng = pos.coords.longitude
 
                     db.collection('users').where('user_id', '==', user.uid).get()
                         .then(snapshot => {
@@ -41,7 +58,7 @@
                                 db.collection('users').doc(doc.id).update({
                                     geolocation: {
                                         lat: pos.coords.latitude,
-                                        lon: pos.coords.longitude
+                                        lng: pos.coords.longitude
                                     }
                                 })
                             })
